@@ -1,18 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 
+// Temel Çalışan sınıfı
 class Calisan
 {
-    // Çalışanın bilgilerini tutacak özellikler
     public string Isim { get; set; }
     public string Soyisim { get; set; }
-    public decimal Maas { get; set; }  // Maaş
-    public int MesaiSaati { get; set; }    // Mesai saati
+    public decimal Maas { get; set; }  // Brüt maaş
+    public int MesaiSaati { get; set; }  // Mesai saati
     public decimal MesaiUcreti { get; set; } // Mesai ücreti
     public decimal VergiOrani { get; set; }  // Vergi oranı
     public int YillikIzinHakki { get; set; }  // Yıllık izin hakkı
     public int KullanilanIzinGunu { get; set; }  // Kullanılan izin günleri
 
-    // Constructor (Yapıcı metod), çalışan bilgilerini başlatmak için kullanılır
     public Calisan(string isim, string soyisim, decimal temelMaas, int mesaiSaati, decimal mesaiUcreti, decimal vergiOrani, int yillikIzinHakki, int kullanilanIzinGunu)
     {
         Isim = isim;
@@ -25,67 +25,107 @@ class Calisan
         KullanilanIzinGunu = kullanilanIzinGunu;
     }
 
-    // Maaş hesaplama metodunu oluşturuyoruz
-    public decimal MaasHesapla()
+    public virtual decimal MaasHesapla()
     {
-        decimal mesaiUcretiToplam = MesaiSaati * MesaiUcreti;  // Mesai ücretini hesapla
-        decimal toplamMaas = Maas + mesaiUcretiToplam;     // Toplam maaşı hesapla
+        decimal mesaiUcretiToplam = MesaiSaati * MesaiUcreti;
+        decimal toplamMaas = Maas + mesaiUcretiToplam;
 
-        // İzin durumu: Kullanılan izin günleri maaştan düşülecek
-        decimal izinKesintisi = KullanilanIzinGunu * (Maas / YillikIzinHakki);  // Kullanılan izin günlerinin maaşa etkisi
+        decimal izinKesintisi = KullanilanIzinGunu * (Maas / YillikIzinHakki);
         toplamMaas -= izinKesintisi;
 
-        // Vergi hesaplama
-        decimal vergi = toplamMaas * (VergiOrani / 100);  // Maaş üzerinden vergi hesapla
-        toplamMaas -= vergi;  // Vergiyi maaştan düş
+        decimal vergi = toplamMaas * (VergiOrani / 100);
+        toplamMaas -= vergi;
 
         return toplamMaas;
     }
 }
+
+// Tam Zamanlı Çalışan sınıfı
+class TamZamanliCalisan : Calisan
+{
+    public TamZamanliCalisan(string isim, string soyisim, decimal temelMaas, int mesaiSaati, decimal mesaiUcreti, decimal vergiOrani, int yillikIzinHakki, int kullanilanIzinGunu)
+        : base(isim, soyisim, temelMaas, mesaiSaati, mesaiUcreti, vergiOrani, yillikIzinHakki, kullanilanIzinGunu)
+    {
+    }
+
+    public override decimal MaasHesapla()
+    {
+        decimal toplamMaas = base.MaasHesapla();
+        toplamMaas += 500; // Tam zamanlı çalışanlara ek 500 TL bonus
+        return toplamMaas;
+    }
+}
+
+// Stajyer sınıfı
+class Stajyer : Calisan
+{
+    public Stajyer(string isim, string soyisim, decimal temelMaas, int mesaiSaati, decimal mesaiUcreti, decimal vergiOrani, int yillikIzinHakki, int kullanilanIzinGunu)
+        : base(isim, soyisim, temelMaas, mesaiSaati, mesaiUcreti, vergiOrani, yillikIzinHakki, kullanilanIzinGunu)
+    {
+    }
+
+    public override decimal MaasHesapla()
+    {
+        decimal toplamMaas = base.MaasHesapla();
+        toplamMaas -= toplamMaas * 0.1m; // %10 stajyer kesintisi
+        return toplamMaas;
+    }
+}
+
+// Program sınıfı
 class Program
 {
     static void Main(string[] args)
     {
-        // Kullanıcıdan çalışan bilgilerini alıyoruz
-        Console.Write("Çalışanın ismini girin: ");
-        string isim = Console.ReadLine();
+        List<Calisan> calisanlar = new List<Calisan>();
 
-        Console.Write("Çalışanın soyismini girin: ");
-        string soyisim = Console.ReadLine();
+        while (true)
+        {
+            Console.WriteLine("\nÇalışan Ekleme:");
+            Console.WriteLine("1. Tam Zamanlı Çalışan");
+            Console.WriteLine("2. Stajyer");
+            Console.WriteLine("3. Çıkış ve Maaşları Göster");
+            Console.Write("Seçiminiz: ");
+            int secim = Convert.ToInt32(Console.ReadLine());
 
-        Console.Write("Brüt Maaşını girin: ");
-        decimal temelMaas = Convert.ToDecimal(Console.ReadLine());
+            if (secim == 3)
+                break;
 
-        Console.Write("Mesai saati girin: ");
-        int mesaiSaati = Convert.ToInt32(Console.ReadLine());
+            Console.Write("İsim: ");
+            string isim = Console.ReadLine();
+            Console.Write("Soyisim: ");
+            string soyisim = Console.ReadLine();
+            Console.Write("Brüt Maaş: ");
+            decimal temelMaas = Convert.ToDecimal(Console.ReadLine());
+            Console.Write("Ek Mesai Saati: ");
+            int mesaiSaati = Convert.ToInt32(Console.ReadLine());
+            Console.Write("Ek Mesai Ücreti: ");
+            decimal mesaiUcreti = Convert.ToDecimal(Console.ReadLine());
+            Console.Write("Vergi Oranı (%): ");
+            decimal vergiOrani = Convert.ToDecimal(Console.ReadLine());
+            Console.Write("Yıllık İzin Hakkı (gün): ");
+            int yillikIzinHakki = Convert.ToInt32(Console.ReadLine());
+            Console.Write("Kullanılan İzin Günleri: ");
+            int kullanilanIzinGunu = Convert.ToInt32(Console.ReadLine());
 
-        Console.Write("Mesai ücretini girin: ");
-        decimal mesaiUcreti = Convert.ToDecimal(Console.ReadLine());
+            if (secim == 1)
+            {
+                calisanlar.Add(new TamZamanliCalisan(isim, soyisim, temelMaas, mesaiSaati, mesaiUcreti, vergiOrani, yillikIzinHakki, kullanilanIzinGunu));
+            }
+            else if (secim == 2)
+            {
+                calisanlar.Add(new Stajyer(isim, soyisim, temelMaas, mesaiSaati, mesaiUcreti, vergiOrani, yillikIzinHakki, kullanilanIzinGunu));
+            }
+            else
+            {
+                Console.WriteLine("Hatalı seçim, lütfen tekrar deneyin.");
+            }
+        }
 
-        Console.Write("Vergi oranını girin (yüzde olarak): ");
-        decimal vergiOrani = Convert.ToDecimal(Console.ReadLine());
-
-        Console.Write("Çalışanın yıllık izin hakkını girin (gün olarak): ");
-        int yillikIzinHakki = Convert.ToInt32(Console.ReadLine());
-
-        Console.Write("Çalışanın kullandığı izin günlerini girin: ");
-        int kullanilanIzinGunu = Convert.ToInt32(Console.ReadLine());
-
-        // Çalışan nesnesi oluşturuluyor
-        Calisan calisan = new Calisan(isim, soyisim, temelMaas, mesaiSaati, mesaiUcreti, vergiOrani, yillikIzinHakki, kullanilanIzinGunu);
-
-        // Çalışanın maaşını hesapla
-        decimal toplamMaas = calisan.MaasHesapla();
-
-        // Maaş bileşenlerini yazdırıyoruz
-        decimal mesaiMaaşı = mesaiSaati * mesaiUcreti;
-        decimal vergi = temelMaas * (vergiOrani / 100);
-        decimal netMaas = temelMaas + mesaiMaaşı - vergi;
-
-        // Sonuçları yazdırıyoruz
-        Console.WriteLine($"Brüt Maaş: {temelMaas:F2} TL");
-        Console.WriteLine($"Mesai Ücreti: {mesaiMaaşı:F2} TL");
-        Console.WriteLine($"Vergi (yüzde {vergiOrani}%): {vergi:F2} TL");
-        Console.WriteLine($"Net Maaş (vergi ve mesai sonrası): {netMaas:F2} TL");
+        Console.WriteLine("\nÇalışanların Maaşları:");
+        foreach (var calisan in calisanlar)
+        {
+            Console.WriteLine($"{calisan.Isim} {calisan.Soyisim} - Net Maaş: {calisan.MaasHesapla():F2} TL");
+        }
     }
 }
